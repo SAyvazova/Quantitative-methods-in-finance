@@ -1,4 +1,3 @@
-#Sibel Ayvazova, F.N. 200038
 
 #####Problem 1#####
 # Write a loop which iterates over all the numbers from 1 to 10 and prints
