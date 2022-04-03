@@ -54,9 +54,9 @@ FactorialFunction <- function(InputNumber){
 inputVector<-c(2,5,7,35,78,99)
 
 SDFunction <- function(inputVector){
-  Average <- mean(inputVector)
+  Average <- mean(inputVector, na.rm = T)
   SquaredDifference<-(inputVector- Average)^2
-  Average2 <- sum(SquaredDifference)/(length(SquaredDifference)-1) #looked it up on the internet and saw that it is like that in, originally was mean(SquaredDifference)
+  Average2 <- sum(SquaredDifference, na.rm = T)/(length(SquaredDifference)-1) #looked it up on the internet and saw that it is like that in, originally was mean(SquaredDifference)
   SD <- sqrt(Average2)
 return(SD)
 }
@@ -80,7 +80,7 @@ not_cancelled <- flights %>%
 #A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
 #A flight is always 10 minutes late.
 #A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
-#99% of the time a flight is on time. 1% of the time it’s 2 hours late.
+#99% of the time a flight is on time. 1% of the time itâ€™s 2 hours late.
 #Which is more important: arrival delay or departure delay?####
   
 #I saw the solution but I don't think I totally get it
@@ -112,11 +112,6 @@ cancelled <-flights%>%
   filter(is.na(dep_delay))%>%
   group_by(month, day)%>%
   summarise(CancelledPerDay = n())
-
-flights%>%
-  group_by(day)%>%
-  mutate(n(is.na(dep_delay)))%>%
-  summarise(AverageDelay = mean(dep_delay))%>%
   
 
 ggplot(data = cancelled, mapping = aes(x = CancelledPerDay)) + 
@@ -167,21 +162,59 @@ ggplot(CarrierDest, mapping = aes(x = NrFlights, y = AverageDelay))+
 #2.Which plane (tailnum) has the worst on-time record?
 
 by_tailnum <- flights %>%
-  mutate( onTime = %>%
-  group_by(tailnum)%>%
-  filter(rank(desc(dep_delay)) < 10)
+  group_by(tailnum) %>%
+  summarise(AverageDelay = mean(dep_delay, na.rm = T),
+            .groups = "drop") %>%
+  arrange(desc(AverageDelay)) %>%
+  slice_head()
 
 #3.What time of day should you fly if you want to avoid delays as much as possible?
 
+when <- flights%>%
+  group_by(dep_time)%>%
+  summarise(AverageDelay = mean(dep_delay), .groups = "drop")%>%
+  arrange(AverageDelay)%>%
+  slice_head(n = 10)
+
 #4.For each destination, compute the total minutes of delay. For each flight, compute the proportion of the total delay for its destination.
 
-#5.Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag(), explore how the delay of a flight is related to the delay of the immediately preceding flight.
+by_dest <- flights%>%
+  group_by(dest,distance)%>%
+  summarise(TotalDelay = sum(dep_delay, na.rm = T))%>%
+  mutate(propDelayDistance = TotalDelay/distance)
 
-#6.Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+#5.Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, 
+#later flights are delayed to allow earlier flights to leave. Using lag(), explore how the delay of a flight is related to the delay of the 
+#immediately preceding flight.
+
+
+
+#6.Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). 
+#Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
   
-#7.Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+#7.Find all destinations that are flown by at least two carriers.
+
+dest_carrier <-flights%>%
+  group_by(dest)%>%
+  summarise(NrCarriers = n_distinct(carrier))%>%
+  filter(NrCarriers >= 2)
+
+# Use that information to rank the carriers.
+
+dest_carrier2 <-flights%>%
+  group_by(dest)%>%
+  count(carrier, name = "NrFlights")%>%
+  mutate(NrCarriers = n_distinct(carrier), rank = min_rank(desc(NrFlights)))%>%
+  arrange(dest, rank)%>%
+  filter(NrCarriers >= 2)
 
 #8.For each plane, count the number of flights before the first delay of greater than 1 hour.
+
+by_flight <- flights%>%
+  group_by(tailnum)%>%
+  filter(dep_delay <= 60)%>%
+  summarise(NrFlights = n())
+
 #####Problem 4#####
 
 #Find the following:
@@ -272,6 +305,11 @@ TimebwFlights <- flights%>%
 #4.8 Use the SDFunction function from exercise 2 to calculate the standard deviation
 #of the flight delays for each month and for each destination.
 
+sd_by_month <- flights%>%
+  select(month, dest, dep_delay)%>%
+  group_by(month, dest)%>%
+  summarise(SD = round(SDFunction(dep_delay),2))
+  
 #####Problem 4#####
 
 #Also upload your homeworks on your own github repo.
