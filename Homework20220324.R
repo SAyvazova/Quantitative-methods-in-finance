@@ -188,6 +188,10 @@ by_dest <- flights%>%
 #immediately preceding flight.
 
 
+lag <- flights%>%
+  group_by(origin)%>%
+  arrange(month, day, dep_time)%>%
+  summarise(DiffPrevDelay = dep_delay - lag(dep_delay, rm.na = T))
 
 #6.Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). 
 #Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
