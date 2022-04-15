@@ -35,7 +35,7 @@ Dates <- data.frame(Date = rep(seq.Date(from = ymd("2019-01-01"),
                                         by = "day"), 3),
                     Symbol = c(rep("AMZN", 822),rep("FB", 822), rep("NFLX", 822)))
 Join <- Dates%>%
-  dplyr::left_join(data, by = c("Date" = "date", "Symbol" = "symbol"))%>%
+  dplyr::left_join(Data_frame1, by = c("Date" = "date", "Symbol" = "symbol"))%>%
   fill(adjusted, .direction = "downup")
 
 # 3.Create a new data frame, which consist only of stocks from AMZN or FB and 
@@ -58,7 +58,7 @@ Data_frame2 <- Join%>%
 # for each of the two stocks - AMZN and FB.
 
 Select_first_last <- Data_frame2%>%
-  group_by(symbol)%>%
+  group_by(Symbol)%>%
   filter(row_number() == 1 | row_number() == n()) #found on the internet. Maybe slice() can be used, but not in this way.
 
 # 5.Select the last observation for each stock, for each month. 
@@ -67,8 +67,7 @@ Select_first_last <- Data_frame2%>%
 
 Select_by_month <- Data_frame2%>%
   mutate(month = floor_date(Date, unit = "month"))%>%
-  #mutate(year = substr(Date, 1:4,))%>%
-  group_by(symbol, month)%>%
+  group_by(Symbol, month)%>%
   slice_head() #last observation should be slice_tail(), but we arranged date in descending order, that is why it is slice_head()
 
 #####Problem 1#####
