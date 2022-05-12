@@ -21,20 +21,29 @@ library(lubridate)
 #####Problem 1.1#####
 
 SMAFunction <- function(InputVector, InputLength, direction){
+  if(InputLength <= length(InputVector)){
     SMA <- NULL
     for(i in 1:length(InputVector)){
       average <- mean(InputVector[i:(i+(InputLength-1))])
       SMA <- c(SMA, average)
     } 
-    SMA <- c(rep(NA, InputLength-1), SMA)
-    SMA <- SMA[1: length(InputVector)] #because i get two additional NAs, that is why i select
-    print(SMA)
+    SMA <- c(SMA[length(SMA):1], rep(NA, InputLength-1))
+    SMA <- SMA[InputLength: length(SMA)] #because i get two additional NAs, that is why i select
+    print(SMA)  
+  }else{
+    message("InputLength is outside valid range: ", "[1, ",length(InputVector), "]")
+  }
 }
+
+data <- c(2, 3.33, 5.45, 2, 7, 9.81, 11)
 
 SMAFunction(data, 3)
 SMA(data, 3)
 
-#I can probably make it in a much better way but i can't think of one just now. And also its direction is to the right.
+SMAFunction(data, 8)
+SMA(data, 8)
+
+#I can probably make it in a much better way but i can't think of one just now.
 
 
 test <- tq_get("AMZN", from= "2022-01-01", to = "2022-04-30")
@@ -46,12 +55,48 @@ Test1 <- test%>%
 
 ####Problem 1.2####
 
+CorrFunction <- function(InputVector1, InputVector2){
+  if(length(InputVector1) == length(InputVector2)){
+    aa <- mean(InputVector1*InputVector2)-(mean(InputVector1)*mean(InputVector2))
+    ab <- sqrt(mean(InputVector1^2)- (mean(InputVector1)^2))
+    ac <- sqrt(mean(InputVector2^2)- (mean(InputVector2)^2))
+    corr <- aa/(ab*ac)  
+    print(corr)
+    } else {
+      print("Error: incompatible dimensions")
+   }
+}
 
+a <- c(1,2,5,7,11,13)
+b<- c(2,2,4,5,6,11)
+
+CorrFunction(a,b)
+cor(a,b)
+
+CorrFunction(data,b)
+cor(data,b)
 
 #####Problem 2#####
 # Find all prime numbers less than 100, using for/while loops.
 #####Problem 2#####
 
+d=0
+Numbers<- c(2:100)
+Primes <- NULL
+
+for(n in 2:length(Numbers)){
+  for(m in 1:n){
+    if(n %% m == 0){
+      d=d+1
+    }
+  }
+  if(d==2){
+    Primes <- c(Primes,n)
+  }
+  d <- 0
+}
+
+#Found on the internet 
 
 #####Problem 3#####
 # Read the wikipedia article and investopedia article on MACD:
