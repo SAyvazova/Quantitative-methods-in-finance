@@ -26,7 +26,7 @@ dates <- data.frame(Date = seq.Date(from = ymd("2021-01-01"), to = ymd("2022-05-
 fin_data <- dates%>%
   left_join(data,by = c("Date"= "date"))%>%
   select(Date, symbol, adjusted)%>%
-  fill(c(symbol, adjusted), .direction = "updown")
+  fill(c(symbol, adjusted), .direction = "downup")
 
 fin_data1<-fin_data%>%
   mutate(SMA20 = SMA(adjusted, n = 20),
